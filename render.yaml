@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: content-compass-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 server.py
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PORT
+        value: 10000
