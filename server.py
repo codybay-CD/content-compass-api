@@ -3283,8 +3283,8 @@ REVIEW_ONLY_REASONS = {
 SKIP_REWRITE_ONLY_REASONS = REVIEW_ONLY_REASONS
 
 
-SMALL_BATCH_THRESHOLD = 5  # batches at or below this size get the full pipeline
-REWRITE_CHAR_THRESHOLD = 25  # strings under this length go to REVIEW_ONLY in full-screen mode
+SMALL_BATCH_THRESHOLD = 15  # batches at or below this size get the full pipeline
+REWRITE_CHAR_THRESHOLD = 8   # strings under this length go to REVIEW_ONLY in full-screen mode
 
 
 def classify_node_for_rewrite(node: TextNodeInput, small_batch: bool = False) -> tuple[bool, str]:
@@ -3345,10 +3345,11 @@ def classify_node_for_rewrite(node: TextNodeInput, small_batch: bool = False) ->
     if small_batch:
         return True, ""
 
-    # ── Rule 2b: Button-label exception — always full pipeline regardless of length ──
-    # Button copy is always authored and intentional, even when short (e.g. "Try It!",
-    # "Join", "Save"). A brand voice rewrite should always be offered.
-    if node.role == "button-label":
+    # ── Rule 2b: Short authored UI copy — always full pipeline regardless of length ──
+    # Button labels, headings, captions, navigation, badges, and placeholders are
+    # always authored and intentional, even when short (e.g. "Try It!", "Join", "Save",
+    # "Welcome back", "Get started"). Always offer a brand voice rewrite.
+    if node.role in ("button-label", "heading", "caption", "navigation", "badge", "placeholder", "error-message", "link"):
         return True, ""
 
     # ── Rule 3: REVIEW_ONLY — short strings (< 25 chars) ──
