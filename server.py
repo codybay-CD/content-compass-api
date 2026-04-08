@@ -3074,7 +3074,19 @@ The rewrite MUST differ from the original — do not return the original text un
 # FastAPI app
 # ---------------------------------------------------------------------------
 
-app = FastAPI(title="Content Compass API", version="2.0.0")
+from contextlib import asynccontextmanager
+import threading
+
+
+@asynccontextmanager
+async def lifespan(app_instance):
+    """Load the Blueprint catalog in a background thread after startup."""
+    thread = threading.Thread(target=_load_blueprint_catalog, daemon=True)
+    thread.start()
+    yield
+
+
+app = FastAPI(title="Content Compass API", version="2.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -4263,7 +4275,5 @@ previous rewrite under any circumstances.
 
 
 if __name__ == "__main__":
-    print(f"Starting Content Compass API v2 on http://localhost:{PORT}")
-    print("[startup] Loading Blueprint component catalog from MCP...")
-    _load_blueprint_catalog()
+    print(f"Starting Content Compass API v2 on http://0.0.0.0:{PORT}")
     uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="info")
